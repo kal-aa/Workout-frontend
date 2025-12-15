@@ -1,17 +1,28 @@
 import { useState } from "react";
-import { useWorkoutsContext } from "../hooks/userWorkoutsContext";
+import { useWorkoutsContext } from "../hooks/useWorkoutsContext";
+import { useAuthContext } from "../hooks/useAuthContext";
 
 const WorkoutForm = ({ workout = null, mode = "create", onClose }) => {
+  const { user } = useAuthContext();
   const { dispatch } = useWorkoutsContext();
 
   const [title, setTitle] = useState(workout?.title || "");
   const [load, setLoad] = useState(workout?.load ?? "");
   const [reps, setReps] = useState(workout?.reps ?? "");
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(null);
   const [emptyFields, setEmptyFields] = useState([]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!user) {
+      setError("You must be logged in");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
 
     const workoutData = { title, load, reps };
 
@@ -20,21 +31,24 @@ const WorkoutForm = ({ workout = null, mode = "create", onClose }) => {
 
     const method = mode === "edit" ? "PATCH" : "POST";
 
-    const response = await fetch(url, {
-      method,
-      body: JSON.stringify(workoutData),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+      const response = await fetch(url, {
+        method,
+        body: JSON.stringify(workoutData),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
 
-    const json = await response.json();
+      const json = await response.json();
 
-    if (!response.ok) {
-      setError(json.error);
-      setEmptyFields(json.emptyFields || []);
-    }
-    if (response.ok) {
+      if (!response.ok) {
+        setError(json.error);
+        setEmptyFields(json.emptyFields || []);
+        return;
+      }
+
       if (mode === "create") {
         setTitle("");
         setLoad(0);
@@ -47,9 +61,12 @@ const WorkoutForm = ({ workout = null, mode = "create", onClose }) => {
         type: mode === "edit" ? "UPDATE_WORKOUT" : "CREATE_WORKOUT",
         payload: json,
       });
-      console.log("New workout added");
 
       if (mode === "edit" && onClose) onClose();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -61,6 +78,7 @@ const WorkoutForm = ({ workout = null, mode = "create", onClose }) => {
         type="text"
         onChange={(e) => setTitle(e.target.value)}
         value={title}
+        required
         className={emptyFields.includes("title") ? "error" : ""}
       />
       <label>Load (kg):</label>
@@ -68,6 +86,7 @@ const WorkoutForm = ({ workout = null, mode = "create", onClose }) => {
         type="number"
         onChange={(e) => setLoad(e.target.value)}
         value={load}
+        required
         className={emptyFields.includes("load") ? "error" : ""}
       />
       <label>Reps:</label>
@@ -75,15 +94,22 @@ const WorkoutForm = ({ workout = null, mode = "create", onClose }) => {
         type="number"
         onChange={(e) => setReps(e.target.value)}
         value={reps}
+        required
         className={emptyFields.includes("reps") ? "error" : ""}
       />
       <div className={mode === "edit" ? "edit-buttons" : ""}>
-        <button type="submit">
-          {mode === "edit" ? "Save Changes" : "Add Workout"}
+        <button type="submit" disabled={isLoading}>
+          {mode === "edit"
+            ? isLoading
+              ? "Saving..."
+              : "Save Changes"
+            : isLoading
+            ? "Adding..."
+            : "Add Workout"}
         </button>
 
         {mode === "edit" && (
-          <button type="button" onClick={onClose}>
+          <button type="button" onClick={onClose} disabled={isLoading}>
             Cancel
           </button>
         )}

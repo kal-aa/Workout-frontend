@@ -24,6 +24,8 @@ export const workoutsReducer = (state, action) => {
           workout._id === action.payload._id ? action.payload : workout
         ),
       };
+    case "RESET_WORKOUTS":
+      return { workouts: [] };
     default:
       return state;
   }
@@ -31,7 +33,7 @@ export const workoutsReducer = (state, action) => {
 
 export const WorkoutsContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(workoutsReducer, {
-    workouts: null,
+    workouts: [],
   });
 
   return (
