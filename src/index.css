@@ -83,6 +83,19 @@ header a {
   margin-top: 10px;
 }
 
+.empty-state {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50%;
+  padding: 1.5rem;
+  color: #6b7280;
+  background: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+}
+
 /* new workout form */
 label,
 input {
@@ -101,6 +114,12 @@ input {
 @media (min-width: 700px) {
   .workout-details input {
     width: 50%;
+  }
+}
+
+@media (max-width: 700px) {
+  form input {
+    width: 80%;
   }
 }
 

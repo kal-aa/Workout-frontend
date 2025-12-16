@@ -29,10 +29,13 @@ const Home = () => {
   return (
     <div className="home">
       <div className="workouts">
-        {workouts &&
+        {workouts?.length > 0 ? (
           workouts.map((workout) => (
             <WorkoutDetails key={workout._id} workout={workout} />
-          ))}
+          ))
+        ) : (
+          <p className="empty-state">No workouts yet. Add your first one 💪</p>
+        )}
       </div>
       <WorkoutForm mode="create" />
     </div>
