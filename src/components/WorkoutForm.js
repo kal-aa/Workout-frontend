@@ -26,8 +26,12 @@ const WorkoutForm = ({ workout = null, mode = "create", onClose }) => {
 
     const workoutData = { title, load, reps };
 
+    const API_URL = process.env.REACT_APP_API_URL || "";
+
     const url =
-      mode === "edit" ? `/api/workouts/${workout._id}` : "/api/workouts";
+      mode === "edit"
+        ? `${API_URL}/api/workouts/${workout._id}`
+        : `${API_URL}/api/workouts`;
 
     const method = mode === "edit" ? "PATCH" : "POST";
 
